@@ -1,0 +1,22 @@
+{
+  "name": "http-api-sample",
+  "version": "0.0.1",
+  "description": "Sample JSON HTTP API",
+  "main": "server.js",
+  "scripts": {
+    "test": "mocha test --recursive"
+  },
+  "author": "Tibor Vajda",
+  "dependencies": {
+    "config": "^1.10.0",
+    "jwt-simple": "^0.2.0",
+    "mongoose": "^3.8.23",
+    "nodemailer": "^1.3.0",
+    "restify": "^2.8.5"
+  },
+  "devDependencies": {
+    "hippie": "^0.3.0",
+    "mocha": "^2.1.0",
+    "should": "^4.6.5"
+  }
+}

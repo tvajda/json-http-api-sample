@@ -1,0 +1,16 @@
+{
+  "server": {
+    "port": 3000
+  },
+  "database": {
+    "credentials": "mongodb://localhost:27017/Json-http-api-sample"
+  },
+  "email": {
+	"send_email": false,
+	"service": "gmail",
+    "user": "sender@gmail.com",
+    "password": "password",
+    "from_address": "sender@gmail.com",
+	"subject": "hello"
+  }
+}
