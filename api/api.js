@@ -22,7 +22,7 @@ function constructUserURL(server, token) {
 function sendEmail(user, emailTransporter, callback) {
   if (emailTransporter) {
     emailTransporter.sendMail({
-      from: config.email.from_address,
+      from: config.email.fromAddress,
       to: user.email,
       subject: config.email.subject,
       text: user.url

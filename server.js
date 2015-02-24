@@ -23,7 +23,7 @@ server.use(restify.jsonBodyParser());
 
 // setup email sending service
 var emailTransporter;
-if (config.email.send_email) {
+if (config.email.sendEmail) {
   emailTransporter = emailer.createTransport({
     service: config.email.service,
     auth: {

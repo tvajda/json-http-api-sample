@@ -6,11 +6,11 @@
     "credentials": "mongodb://localhost:27017/Json-http-api-sample"
   },
   "email": {
-    "send_email": false,
+    "sendEmail": false,
     "service": "gmail",
     "user": "sender@gmail.com",
     "password": "password",
-    "from_address": "sender@gmail.com",
+    "fromAddress": "sender@gmail.com",
     "subject": "hello"
   }
 }
