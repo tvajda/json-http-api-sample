@@ -1,52 +1,52 @@
-// CONFIG PARAMS
-var config = require('config'); // loads environment-dependent configuration parameters from config folder
+'use strict';
 
-var DATABASE_CREDENTIALS = config.get('database.credentials');
-var SERVER_PORT = process.env.PORT || config.get('server.port');
-var SEND_EMAIL = config.get('email.send_email');
-var EMAIL_SERVICE = config.get('email.service');
-var EMAIL_USER = config.get('email.user');
-var EMAIL_PASSWORD = config.get('email.password');
-
-
-// USE Restify REST server
 var restify = require('restify');
+var config = require('config');
+var emailer = require('nodemailer');
+var database = require('mongoose');
+
+var api = require('api/api');
+
+// check if configuration is found and loaded
+if (!config.server) {
+  console.error('Configuration files are not found at ' + process.cwd() +
+    '/config or no NODE_CONFIG_DIR is specified');
+  process.exit(-1);
+}
+
+// use Restify REST server
 var server = restify.createServer();
 
-// SETUP INCOMING CONTENT PROCESSING
+// allow incoming json content processing
 server.use(restify.acceptParser(server.acceptable));
 server.use(restify.jsonBodyParser());
 
-// EMAIL SENDING SERVICE
-var emailer = require('nodemailer');
-var emailTransporter = undefined;
-if (SEND_EMAIL) {
-    emailTransporter = emailer.createTransport({
-        service: EMAIL_SERVICE,
-        auth: {
-            user: EMAIL_USER,
-            pass: EMAIL_PASSWORD
-        }
-    });
+// setup email sending service
+var emailTransporter;
+if (config.email.send_email) {
+  emailTransporter = emailer.createTransport({
+    service: config.email.service,
+    auth: {
+      user: config.email.user,
+      pass: config.email.password
+    }
+  });
 }
-;
 
-// DEFINE API ENDPOINTS
-require('./api/api')(server, emailTransporter);
+// define api endpoints
+api(server, emailTransporter);
 
-// CONNECT TO MONGODB DATABASE
-var database = require('mongoose');
-
+// connect to mongodb
 var connect = function () {
-    database.connect(DATABASE_CREDENTIALS);
+  database.connect(config.database.credentials);
 };
 connect();
 database.connection.on('error', console.log);
 database.connection.on('disconnected', connect);
 
-// LAUNCH API SERVER
-server.listen(SERVER_PORT, function () {
-    console.log('JSON HTTP API server is listening at %s', server.url);
+// launch the api server
+server.listen(process.env.PORT || config.server.port, function () {
+  console.log('JSON HTTP API server is listening at %s', server.url);
 });
 
 module.exports = server;

@@ -1,7 +1,10 @@
+'use strict';
 
-function validEmail(email) {
-	var emailRegex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
-	return emailRegex.test(email);
-}
+module.exports = {
 
-exports.validEmail = validEmail;
+  isValidEmail: function (email) {
+    var emailRegex = /^\w+([\.\-]?\w+)*@\w+([\.\-]?\w+)*(\.\w{2,3})+$/;
+    return emailRegex.test(email);
+  }
+
+};

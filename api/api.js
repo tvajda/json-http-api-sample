@@ -1,13 +1,13 @@
-var userModel = require('./../model/user').userModel;
+'use strict';
 
-// token coding/decoding
+var async = require('async');
 var jwt = require('jwt-simple');
-var SECRET_KEY = 'json-api-sample-secret-key';
-
-// config constants
 var config = require('config');
-var EMAIL_FROM_ADDRESS = config.get('email.from_address');
-var EMAIL_SUBJECT = config.get('email.subject');
+
+var UserModel = require('model/user');
+
+// TOKEN
+var SECRET_KEY = 'json-api-sample-secret-key';
 
 // HTTP codes
 var HTTP_CREATE_FAILED = 400;
@@ -15,88 +15,97 @@ var HTTP_CREATE_SUCCEEDED = 201;
 var HTTP_GET_FAILED = 404;
 var HTTP_GET_SUCCEEDED = 200;
 
-function api(server, emailTransporter) {
-
-    server.post('/api/registration', function (req, res) {
-        var name = req.params.name;
-        var email = req.params.email;
-
-        var user = new userModel({name: name, email: email});
-        //
-        // Store user to the database
-        //
-        user.save(function (err) {
-            if (err) {
-                console.log(err);
-                res.send(HTTP_CREATE_FAILED, err);
-            } else {
-                var token = jwt.encode(user._id, SECRET_KEY);
-                var url = constructUserURL(server, token);
-                //
-                // Send user notification email
-                //
-                if (emailTransporter) {
-                    sendEmail(emailTransporter);
-                }
-                //
-                // Compose response
-                //
-                res.setHeader("Location", url);
-                var jsonUser = JSON.stringify(user);
-                res.send(HTTP_CREATE_SUCCEEDED, jsonUser);
-            }
-        })
-    });
-
-    server.get('/api/users/:token', function (req, res) {
-        var token = req.params.token;
-
-        try {
-            var userId = jwt.decode(token, SECRET_KEY);
-            //
-            // Lookup user in the database by ID decoded from the token
-            //
-            userModel.findById(userId, function (err, user) {
-                if (err) {
-                    console.log(err);
-                    res.send(HTTP_GET_FAILED);
-                } else {
-                    //
-                    // Retrieve list of all users in the database
-                    //
-                    userModel.find(function (err, users) {
-                        if (err) {
-                            console.log(err);
-                            res.send(HTTP_GET_FAILED);
-                        } else {
-                            //
-                            // Return list of all users
-                            //
-                            var jsonUsers = JSON.stringify(users);
-                            res.send(HTTP_GET_SUCCEEDED, jsonUsers);
-                        }
-                    });
-                }
-            });
-        } catch (err) {         // invalid token
-            console.log(err);
-            res.send(HTTP_GET_FAILED);
-        }
-
-    });
-}
-
 function constructUserURL(server, token) {
-    return server.url + "/api/users/" + token;
-};
-
-function sendEmail(emailtransporter) {
-    emailTransporter.sendMail({
-        from: EMAIL_FROM_ADDRESS,
-        to: user.email,
-        subject: EMAIL_SUBJECT,
-        text: url
-    });
+  return server.url + '/api/users/' + token;
 }
 
-module.exports = api;
+function sendEmail(user, emailTransporter, callback) {
+  if (emailTransporter) {
+    emailTransporter.sendMail({
+      from: config.email.from_address,
+      to: user.email,
+      subject: config.email.subject,
+      text: user.url
+    }, callback);
+  } else {
+    callback();
+  }
+}
+
+function findUserAndValidate(userId, callback) {
+  UserModel.findById(userId, function userRetrieved(err, user) {
+    if (!err && !user) {
+      err = new Error('Specified user couldn\'t be found in the database');
+    }
+    callback(err, user);
+  });
+}
+
+module.exports = function createEndPoints(server, emailTransporter) {
+
+  server.post('/api/registration', function (req, res) {
+    var name = req.params.name;
+    var email = req.params.email;
+
+    var user = new UserModel({name: name, email: email});
+
+    // create user token
+    try {
+      user.token = jwt.encode(user.id, SECRET_KEY);
+    } catch (err) {
+      console.error(err);
+      res.send(HTTP_CREATE_FAILED, err);
+      return;
+    }
+
+    user.url = constructUserURL(server, user.token);
+
+    async.series([
+      function (callback) {
+        user.save(callback);
+      },
+      function (callback) {
+        sendEmail(user, emailTransporter, callback);
+      }],
+      function final(err) {
+        if (err) {
+          console.error(err);
+          res.send(HTTP_CREATE_FAILED, err);
+        } else {
+          res.setHeader('Location', user.url);
+          res.send(HTTP_CREATE_SUCCEEDED, JSON.stringify(user));
+        }
+      });
+  });
+
+  server.get('/api/users/:token', function (req, res) {
+    var token = req.params.token;
+
+    // decode userId from token
+    var userId;
+    try {
+      userId = jwt.decode(token, SECRET_KEY);
+    } catch (err) {
+      console.error(err);
+      res.send(HTTP_CREATE_FAILED, err);
+      return;
+    }
+
+    async.series([
+      function (callback) {
+        findUserAndValidate(userId, callback);
+      },
+      function (callback) {
+        UserModel.find(callback);
+      }],
+      function final(err, results) {
+        if (!err) {
+          var users = results[results.length - 1];
+          res.send(HTTP_GET_SUCCEEDED, JSON.stringify(users));
+        } else {
+          console.error(err);
+          res.send(HTTP_GET_FAILED);
+        }
+      });
+  });
+};

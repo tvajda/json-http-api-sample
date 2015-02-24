@@ -1,19 +1,18 @@
+'use strict';
+
 var database = require('mongoose');
-var utils = require('./../utils/utils');
+var utils = require('utils/utils');
 
 var userSchema = new database.Schema({
-    name: String,
-    email: String
+  name: String,
+  email: String
 });
 
-var userModel = database.model('User', userSchema);
+var UserModel = database.model('User', userSchema);
 
-//
-// Validate email field
-//
-userModel.schema.path('email').validate(function (email) {
-        return utils.validEmail(email);
-    }, 'Invalid email'
-);
+// validate email field
+UserModel.schema.path('email').validate(function (email) {
+  return utils.isValidEmail(email);
+}, 'Invalid email');
 
-exports.userModel = userModel;
+module.exports = UserModel;

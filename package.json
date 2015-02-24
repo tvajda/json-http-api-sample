@@ -4,10 +4,12 @@
   "description": "Sample JSON HTTP API",
   "main": "server.js",
   "scripts": {
-    "test": "mocha test --recursive"
+    "start": "NODE_PATH=. node server.js",
+    "test": "NODE_PATH=. mocha test --recursive"
   },
   "author": "Tibor Vajda",
   "dependencies": {
+    "async": "^0.9.0",
     "config": "^1.10.0",
     "jwt-simple": "^0.2.0",
     "mongoose": "^3.8.23",
