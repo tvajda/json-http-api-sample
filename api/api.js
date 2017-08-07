@@ -4,7 +4,7 @@ var async = require('async');
 var jwt = require('jwt-simple');
 var config = require('config');
 
-var UserModel = require('model/user');
+var UserModel = require('../model/user');
 
 // TOKEN
 var SECRET_KEY = 'json-api-sample-secret-key';

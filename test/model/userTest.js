@@ -4,7 +4,7 @@ process.env.NODE_ENV = 'test';
 
 var should = require('should');
 
-var UserModel = require('model/user');
+var UserModel = require('../../model/user');
 
 describe('User model', function () {
 

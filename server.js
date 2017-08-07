@@ -5,7 +5,7 @@ var config = require('config');
 var emailer = require('nodemailer');
 var database = require('mongoose');
 
-var api = require('api/api');
+var api = require('./api/api');
 
 // check if configuration is found and loaded
 if (!config.server) {

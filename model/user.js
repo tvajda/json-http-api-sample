@@ -1,7 +1,7 @@
 'use strict';
 
 var database = require('mongoose');
-var utils = require('utils/utils');
+var utils = require('../utils/utils');
 
 var userSchema = new database.Schema({
   name: String,
