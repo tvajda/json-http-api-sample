@@ -3,7 +3,7 @@
 module.exports = {
 
   isValidEmail: function (email) {
-    emailRegex = /^\w+([\.\-]?\w+)*@\w+([\.\-]?\w+)*(\.\w{2,3})+$/;
+    var emailRegex = /^\w+([\.\-]?\w+)*@\w+([\.\-]?\w+)*(\.\w{2,3})+$/;
     return emailRegex.test(email);
   }
 
